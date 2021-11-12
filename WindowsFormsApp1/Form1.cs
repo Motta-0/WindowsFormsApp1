@@ -103,7 +103,8 @@ namespace Elevator
         int[] downReq = new int[8];
 
         String[] strFloor = new string[8] { "F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8" };
-
+        enum Floor { F1,F2,F3,F4,F5,F6,F7,F8};
+        Floor nowFloor = Floor.F1; //posição inicial
         //botão interno
         private void inside1_CellClick(object sender, DataGridViewCellEventArgs e)
         {
