@@ -150,7 +150,25 @@ namespace Elevator
                 if(req!=now)//se o andar for diferente do que foi chamado
                 {
                     cageGrid1[0, 7 - now].Value = null;
-
+                    if (req > now)//sobe
+                    {
+                        now++;
+                        cageGrid1[0, 7 - now].Value = closeImage;
+                        nowFloor++;
+                    }
+                    else //desce
+                    {
+                        now--;
+                        cageGrid1[0, 7 - now].Value = closeImage;
+                        nowFloor--;
+                    }
+                }
+                else
+                {
+                    cageGrid1[0, 7 - now].Value = closeImage;
+                    insideReq[req] = 0;
+                    inside1.Rows[7 - now].DefaultCellStyle.BackColor = Color.White;
+                    reqFloor = 0; //sem chamados
                 }
             }
         }
@@ -200,6 +218,31 @@ namespace Elevator
             outDown.Rows[row].DefaultCellStyle.BackColor = Color.Orange;
             // teste dos botoes MessageBox.Show(str);
             outDown.Rows[row].DefaultCellStyle.BackColor = Color.White;
+        }
+
+        private void pushQue(int p)
+        {
+            for (int n=0;n<QUESIZE;n++)
+            {
+                if(insQue[n]==0)
+                {
+                    insQue[n] = p;
+                    break;
+                }
+            }
+        }
+
+        private int popQue()
+        {
+            int ret = insQue[0];
+            int n;
+            for(n=1;n<QUESIZE;n++)
+            {
+                insQue[n - 1] = insQue[n];
+
+            }
+            insQue[n - 1] = 0;
+            return ret;
         }
     }
 }
