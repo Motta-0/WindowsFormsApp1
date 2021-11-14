@@ -71,6 +71,17 @@ namespace Elevator
                 downReq[n] = 0;
 
             }
+
+            for(int n = 0; n < 8; n++)
+            {
+                insideReq[n] = 0;
+                upReq[n] = 0;
+                downReq[n] = 0;
+            }
+            for (int n = 0; n < QUESIZE; n++)
+            {
+                insQue[n] = 0;
+            }
         }
 
         private void inside1_SelectionChanged(object sender, EventArgs e)
@@ -129,6 +140,19 @@ namespace Elevator
                     break;
                 }
             }
+
+            int now = (int)nowFloor;
+            if (reqFloor == 0)
+                reqFloor = popQue();
+            if (reqFloor > 0)
+            {
+                int req = reqFloor - 1; //andar que foi chamado
+                if(req!=now)//se o andar for diferente do que foi chamado
+                {
+                    cageGrid1[0, 7 - now].Value = null;
+
+                }
+            }
         }
         
         int[] insideReq = new int[8];
@@ -138,6 +162,9 @@ namespace Elevator
         String[] strFloor = new string[8] { "F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8" };
         enum Floor { F1,F2,F3,F4,F5,F6,F7,F8};
         Floor nowFloor = Floor.F1; //posição inicial
+        const int QUESIZE = 8; //prioridade no chamar do elevador
+        int[] insQue = new int[QUESIZE];
+        int reqFloor = 0; //sem nenhum chamado
 
         //botão interno
         private void inside1_CellClick(object sender, DataGridViewCellEventArgs e)
@@ -148,6 +175,11 @@ namespace Elevator
             inside1.Rows[row].DefaultCellStyle.BackColor = Color.Orange;
             // teste dos botoes MessageBox.Show(str);
             inside1.Rows[row].DefaultCellStyle.BackColor = Color.White;
+
+            int req = 7 - row + 1;
+            insideReq[7 - row] = req;
+            pushQue(req);
+            inside1.Rows[row].DefaultCellStyle.BackColor = Color.Orange;
         }
 
         private void outUp_CellClick(object sender, DataGridViewCellEventArgs e)
