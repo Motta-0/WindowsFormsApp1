@@ -10,6 +10,9 @@ using System.Windows.Forms;
 
 namespace Elevator
 {
+    enum Floor { F1, F2, F3, F4, F5, F6, F7, F8 };
+    enum Direct { STOP, UP, DOWN };
+    enum Most { LOWER, UPPER };
     public partial class Form1 : Form
     {
         Image closeImage = null;
@@ -72,16 +75,16 @@ namespace Elevator
 
             }
 
-            for(int n = 0; n < 8; n++)
-            {
-                insideReq[n] = 0;
-                upReq[n] = 0;
-                downReq[n] = 0;
-            }
+            //zerando os andares 
             for (int n = 0; n < QUESIZE; n++)
             {
                 insQue[n] = 0;
             }
+
+            //estado inicial
+            nowFloor = Floor.F1;
+            reqFloor = 0;
+            direct = Direct.STOP;
         }
 
         private void inside1_SelectionChanged(object sender, EventArgs e)
@@ -171,6 +174,24 @@ namespace Elevator
                     reqFloor = 0; //sem chamados
                 }
             }
+            if(passCtr >0)
+            {
+                passCtr--;
+                return;
+            }
+            switch(direct)
+            {
+                case Direct.STOP:
+                    CageStart();
+                break;
+                case Direct.UP:
+                    CageUp();
+                break;
+                case Direct.DOWN:
+                    CageDown();
+                break;
+
+            }
         }
         
         int[] insideReq = new int[8];
@@ -178,11 +199,13 @@ namespace Elevator
         int[] downReq = new int[8];
 
         String[] strFloor = new string[8] { "F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8" };
-        enum Floor { F1,F2,F3,F4,F5,F6,F7,F8};
         Floor nowFloor = Floor.F1; //posição inicial
         const int QUESIZE = 8; //prioridade no chamar do elevador
         int[] insQue = new int[QUESIZE];
         int reqFloor = 0; //sem nenhum chamado
+        Direct direct = Direct.STOP;
+        int passCtr = 0;
+
 
         //botão interno
         private void inside1_CellClick(object sender, DataGridViewCellEventArgs e)
@@ -239,10 +262,207 @@ namespace Elevator
             for(n=1;n<QUESIZE;n++)
             {
                 insQue[n - 1] = insQue[n];
-
             }
             insQue[n - 1] = 0;
             return ret;
+        }
+
+        private void CageStart()
+        {
+            int now = (int)nowFloor;
+            if (reqFloor == 0)
+                reqFloor = popQue();
+            if(reqFloor>0)
+            {
+                int req = (reqFloor % 10) - 1;
+                //chamado em outro andar
+                if(req!=now)
+                {
+                    if (req > now)//sobe
+                    {
+                        MoveUp1();
+                        direct = Direct.UP;
+                    }
+                    else //DOwn
+                    {
+                        MoveDown1();
+                        direct = Direct.DOWN;
+                    }
+                }
+                else //no mesmo andar
+                {
+                    DoorClose1();
+                }
+            }      
+        }
+
+        private void MoveUp1()
+        {
+            int now = (int)nowFloor;
+            cageGrid1[0, 7 - now].Value = null;
+            inside1.Rows[7 - now].DefaultCellStyle.BackColor = Color.White;
+            string str1 = string.Format("MOve Up from {0}", nowFloor);
+            ShowListBox_1(str1);
+            now++;
+            cageGrid1[0, 7 - now].Value = closeImage;
+            nowFloor++;
+        }
+
+        private void MoveDown1()
+        {
+            int now = (int)nowFloor;
+            cageGrid1[0, 7 - now].Value = null;
+            inside1.Rows[7 - now].DefaultCellStyle.BackColor = Color.White;
+            string str1 = string.Format("Move down from {0}", nowFloor);
+            ShowListBox_1(str1);
+            now--;
+            cageGrid1[0, 7 - now].Value = closeImage;
+            nowFloor--;
+        }
+
+        private void DoorOpen1()
+        {
+            int now = (int)nowFloor;
+            cageGrid1[0, 7 - now].Value = openImage;
+            passCtr = 3;
+            string str1 = string.Format("> Door Open at {0}", nowFloor);
+            ShowListBox_1(str1);
+        }
+
+        private void DoorClose1()
+        {
+            int now = (int)nowFloor;
+            cageGrid1[0, 7 - now].Value = closeImage;
+            inside1.Rows[7 - now].DefaultCellStyle.BackColor = Color.White;
+            insideReq[now] = 0;
+            reqFloor = 0; //sem chamado
+            string str1 = string.Format("< Door Close at {0}", nowFloor);
+            ShowListBox_1(str1);
+        }
+
+        private void CageUp()
+        {
+            int now = (int)nowFloor;
+            int req = insideReq[now];
+
+            if(req==0) // porta fechada ou passou
+            {
+                if (IsUpper1() == true)
+                {
+                    MoveUp1();
+                    direct = Direct.UP;
+                }
+                else
+                {
+                    EndWork(Most.UPPER);
+                    direct = Direct.STOP;
+                }
+            }
+            else
+            {
+                StopFloor1();
+            }
+        }
+
+        private void StopFloor1()
+        {
+            int now = (int)nowFloor;
+            cageGrid1[0, 7 - now].Value = openImage;
+            insideReq[now] = 0;
+            clearQue(now + 1);
+            reqFloor = 0;
+            passCtr = 3;
+            string str1 = string.Format("> Door Open at {0}", nowFloor);
+            ShowListBox_1(str1);
+        }
+
+        private bool IsUpper1()
+        {
+            int now = (int)nowFloor;
+            bool flag = false;
+            for(int n = now+1;n<8;n++)
+            {
+                if(insideReq[n] >0)
+                {
+                    flag = true;
+                    break;
+                }
+            }
+            return flag;
+        }
+
+        private void EndWork(Most end)
+        {
+            int now = (int)nowFloor;
+            cageGrid1[0, 7 - now].Value = closeImage;
+            inside1.Rows[7 - now].DefaultCellStyle.BackColor = Color.White;
+            string str3 = string.Format("{0}", (end == Most.LOWER)?"Lower":"Upper");
+            string str4 = string.Format("=={0} End at {1}", str3, nowFloor);
+            ShowListBox_1(str4);
+        }
+
+        private void CageDown()
+        {
+            int now = (int)nowFloor;
+            int req = insideReq[now];
+            if (req == 0)
+            {
+                if (IsLower1() ==  true)
+                {
+                    MoveDown1();
+                    direct = Direct.DOWN;
+                }
+                else
+                {
+                    EndWork(Most.LOWER);
+                    direct = Direct.STOP;
+                }
+            }
+            else
+            {
+                StopFloor1();
+            }
+        }
+
+        private bool IsLower1()
+        {
+            int now = (int)nowFloor;
+            bool flag = false;
+            for(int n=now-1; n>=0; n--)
+            {
+                if (insideReq[n] > 0)
+                {
+                    flag = true;
+                    break;
+                }
+            }
+        return flag;
+        }
+
+        private void clearQue(int p)
+        {
+            for(int n=0; n<QUESIZE; n++)
+            {
+                if(insQue[n] == p)
+                {
+                    for(n++;n<QUESIZE;n++)
+                    {
+                        insQue[n - 1] = insQue[n];
+                    }
+                    insQue[n - 1] = 0;
+                    break;
+                }
+            }
+        }
+
+        private void ShowListBox_1(string str1)
+        {
+            listBox1.Items.Add(str1);
+            while(listBox1.Items.Count>50)
+            {
+                listBox1.Items.RemoveAt(0);
+            }
+            listBox1.SelectedIndex = listBox1.Items.Count - 1;
         }
     }
 }
