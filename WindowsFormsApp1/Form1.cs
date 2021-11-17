@@ -54,7 +54,7 @@ namespace Elevator
             {
                 outUp[0, n].Value = string.Format("{0}", 8 - n);
             }
-            outUp.Rows[0].Visible = false;
+            outUp.Rows[0].Visible = true;
 
             //externo_desce
             outDown.RowTemplate.Height = 40;
@@ -63,7 +63,7 @@ namespace Elevator
             {
                 outDown[0, n].Value = string.Format("{0}", 8 - n);
             }
-            outDown.Rows[7].Visible = false;
+            outDown.Rows[7].Visible = true;
         }
 
         private void Form1_Load(object sender, EventArgs e)
@@ -171,7 +171,7 @@ namespace Elevator
                     if (req > now)//sobe
                     {
                         now++;
-                        cageGrid1[0, 7 - now].Value = closeImage;
+                        cageGrid1[0, 7- now].Value = closeImage;
                         nowFloor++;
                     }
                     else //desce
@@ -254,7 +254,7 @@ namespace Elevator
             outDown.Rows[row].DefaultCellStyle.BackColor = Color.Orange;
             ShowDownReq(req);
             // teste dos botoes MessageBox.Show(str);
-            outDown.Rows[row].DefaultCellStyle.BackColor = Color.White;
+           // outDown.Rows[row].DefaultCellStyle.BackColor = Color.White;
             ShowDownReq(req);
         }
 
